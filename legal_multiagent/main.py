@@ -140,17 +140,14 @@ def generate_final_answer_node(state: LegalCaseState) -> LegalCaseState:
     print("▶️ 최종 답변 조립 중...")
     parts = [
         f"\n\n✅ 사건 분야: {', '.join(state['case_categories'])}" if state.get("case_categories") else "",
-
         f"🔎 기초 사실:\n" + "\n".join(state["basic_facts"])
         if state.get("basic_facts") else "",
-
-        f"⚖️ 법적 쟁점: {state['legal_issue']}"             if state.get("legal_issue") else "",
-
-        f"📖 적용 법령:\n" + ("\n".join(state["law_recommendation"])
-                             if isinstance(state["law_recommendation"], list)
-                             else state["law_recommendation"])
+        f"⚖️ 법적 쟁점: {state['legal_issue']}" if state.get("legal_issue") else "",
+        f"📖 적용 법령:\n" +
+        ("\n".join(state["law_recommendation"])
+        if isinstance(state["law_recommendation"], list)
+        else state["law_recommendation"])
         if state.get("law_recommendation") else "",
-
         f"📝 참고 판례(사건번호 / 사건명):\n" + "\n".join(state["precedent_cases"])
         if state.get("precedent_cases") else "",
         f"📚 유사 판례: {state['precedent_summary']}"  if state.get("precedent_summary") else "",
