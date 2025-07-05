@@ -61,8 +61,6 @@ def search_similar_precedents_from_supabase(
     basic_facts:  str | list | dict | None = None,
     legal_issue:  str | list | dict | None = None,
     related_laws: str | list | dict | None = None,
-    # LangGraph alias
-    precedent_queries: str | list | None = None,
     legal_domains:     str | None = None,
     case_type:         str | None = None,
     # search params
@@ -90,9 +88,6 @@ def search_similar_precedents_from_supabase(
         "admin"   : "행정",
     }
     case_type = CASE_TYPE_MAP.get(case_type, case_type)   # 변환
-
-    if basic_facts is None and precedent_queries is not None:
-        basic_facts = precedent_queries        # 리스트일 수도 있음
 
     # 1️⃣ 문자열 정규화 ---------------------------------------------
     basic_facts  = _to_text(basic_facts)
