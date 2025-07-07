@@ -64,7 +64,7 @@ def search_similar_precedents_from_supabase(
     legal_domains:     str | None = None,
     case_type:         str | None = None,
     # search params
-    top_k:   int   = 10,
+    top_k:   int   = 5,
     w_facts: float = 0.4,
     w_issue: float = 0.4,
     w_law:   float = 0.2,

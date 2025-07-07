@@ -14,13 +14,17 @@ def classify_legal_domains_node(state: LegalCaseState) -> LegalCaseState:
 
 def extract_basic_facts_node(state: LegalCaseState) -> LegalCaseState:
     print("▶️ 사실관계 추출 중...")
-    facts = extract_basic_facts(state["user_input"])
+    facts = extract_basic_facts(state["user_input"], state["case_categories"])
     return {"basic_facts": facts}                          # ✅
 
 def extract_legal_issue_node(state: LegalCaseState) -> LegalCaseState:
     print("▶️ 법적 쟁점 추출 중...")
-    issue = generate_legal_issue(state["user_input"])
-    return {"legal_issue": issue}                          # ✅
+    issue = generate_legal_issue(
+        state["user_input"], 
+        state["basic_facts"], 
+        state["case_categories"]
+    )
+    return {"legal_issue": issue}
 
 def summarize_precedents_node(state: LegalCaseState) -> LegalCaseState:
     print("▶️ 유사 판례 요약 중...")
