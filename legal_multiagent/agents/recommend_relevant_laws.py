@@ -1,6 +1,5 @@
-#관련 조문 추천 에이전트
-
 import json
+import sys
 from typing import List
 from openai import OpenAI
 import os
@@ -63,14 +62,20 @@ def recommend_relevant_laws(
             ],
             temperature=0.3
         )
-        raw = response.choices[0].message.content
+        raw = response.choices[0].message.content.strip()
+        
+        if not raw: # 빈 문자열인 경우
+            return []
+
         data = json.loads(raw)
 
         if isinstance(data, dict) and "laws" in data:
             return data["laws"]
         if isinstance(data, list):
             return data
+    except json.JSONDecodeError as e:
+        print("❌ 법령 추천 실패 (JSON 파싱 오류):", e, file=sys.stderr)
+        return []
     except Exception as e:
-        print("❌ 법령 추천 실패:", e)
-
-    return []
+        print("❌ 법령 추천 실패 (기타 오류):", e, file=sys.stderr)
+        return []
