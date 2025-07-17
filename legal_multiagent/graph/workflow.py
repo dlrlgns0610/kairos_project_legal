@@ -9,7 +9,7 @@ def get_langfuse_handler():
     return LangfuseCallbackHandler(
         public_key=os.getenv("LANGFUSE_PUBLIC_KEY"),
         secret_key=os.getenv("LANGFUSE_SECRET_KEY"),
-        host=os.getenv("LANGFUSE_HOST", "https://cloud.langfuse.com"),
+        host=os.getenv("LANGFUSE_HOST"),
     )
 
 def route_by_case_category(state: LegalCaseState):
@@ -36,37 +36,26 @@ def create_workflow() -> StateGraph:
     workflow.add_node("GenerateCriminalLegalIssue", RunnableLambda(nodes.generate_criminal_issue_node))
     workflow.add_node("GenerateAdministrativeLegalIssue", RunnableLambda(nodes.generate_administrative_issue_node))
     workflow.add_node("RecommendLaw", RunnableLambda(nodes.recommend_law_node))
+
+    # 🆕 새로 만든 노드들
+    workflow.add_node("FindRelevantLaw", RunnableLambda(nodes.find_relevant_law_node))  # 제목 가져오기
+    workflow.add_node("FindExactLaw", RunnableLambda(nodes.find_exact_law_node))        # LLM으로 조문 추리기
+
     workflow.add_node("SummarizePrecedents", RunnableLambda(nodes.summarize_precedents_node))
     workflow.add_node("GenerateConclusionAndSentencing", RunnableLambda(nodes.generate_conclusion_and_sentencing_node))
     workflow.add_node("GenerateFinalAnswer", RunnableLambda(nodes.generate_final_answer_node))
 
-    # ── 엣지 연결 (조건부 분기) ──────────────────
+    # ── 엣지 연결 (선형 흐름) ──────────────────
     workflow.set_entry_point("ClassifyCaseType")
-
-    workflow.add_conditional_edges(
-        "ClassifyCaseType",
-        route_by_case_category,
-        {
-            "ExtractCivilFacts": "ExtractCivilFacts",
-            "ExtractCriminalFacts": "ExtractCriminalFacts",
-            "ExtractAdministrativeFacts": "ExtractAdministrativeFacts",
-        }
-    )
-
-    workflow.add_edge("ExtractCivilFacts", "GenerateCivilLegalIssue")
-    workflow.add_edge("ExtractCriminalFacts", "GenerateCriminalLegalIssue")
-    workflow.add_edge("ExtractAdministrativeFacts", "GenerateAdministrativeLegalIssue")
-
-    workflow.add_edge("GenerateCivilLegalIssue", "RecommendLaw")
-    workflow.add_edge("GenerateCriminalLegalIssue", "RecommendLaw")
-    workflow.add_edge("GenerateAdministrativeLegalIssue", "RecommendLaw")
-
+    workflow.add_edge("ClassifyCaseType", "ExtractBasicFacts")
+    workflow.add_edge("ExtractBasicFacts", "ExtractLegalIssue")
+    workflow.add_edge("ExtractLegalIssue", "RecommendLaw")
     workflow.add_edge("RecommendLaw", "SummarizePrecedents")
     workflow.add_edge("SummarizePrecedents", "GenerateConclusionAndSentencing")
     workflow.add_edge("GenerateConclusionAndSentencing", "GenerateFinalAnswer")
     workflow.set_finish_point("GenerateFinalAnswer")
 
-    # ✅ Langfuse 트래킹 적용
+    # ✅ Langfuse 트래킹
     return workflow.compile().with_config({
         "callbacks": [langfuse_handler]
     })
