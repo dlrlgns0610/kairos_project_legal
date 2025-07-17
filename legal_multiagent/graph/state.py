@@ -10,8 +10,8 @@ class LegalCaseState(TypedDict):
     case_categories: Optional[List[str]]         # ✦ 사건 분류 노드
     law_recommendation: Optional[List[str]]      # ✦ 관련 조문 추천 노드
 
-    exact_laws: Optional[List[Dict]]             # ✅ 법령 ID 및 조문 전문
-    final_law_recommendation: Optional[List[str]]# ✅ GPT가 골라낸 정확한 조문 리스트
+    relevant_laws: Optional[List[Dict]]             # ✅ 법령 ID 및 조문 전문
+    exact_laws: Optional[List[str]]# ✅ GPT가 골라낸 정확한 조문 리스트
 
     precedent_summary: Optional[str]             # ✦ 판례 요약 노드
     precedent_cases: Optional[List[str]]         # ✦ 사건번호/사건명 추출 노드

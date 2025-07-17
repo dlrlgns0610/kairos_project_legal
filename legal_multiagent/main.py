@@ -1,8 +1,19 @@
 import sys
+import os
+
+project_root = "C:/Users/yjw64/projects/github/kairos/kairos_project_legal"
+os.chdir(project_root)
+sys.path.insert(0, project_root)
+
+
+# 이제 이 경로를 기준으로 import, 파일 열기 등이 작동
+import sys
 import json
 import time
 from legal_multiagent.graph.workflow import create_workflow
 from dotenv import load_dotenv
+
+
 
 def main():
     # .env 파일 로드
@@ -44,7 +55,8 @@ def main():
         "final_answer": result["final_answer"],
         "execution_time": f"{time.time() - start_time:.2f}초"
     }
-    print(json.dumps(output_data, ensure_ascii=False))
-
+    # print(json.dumps(output_data, ensure_ascii=False, indent=2))
+    print(output_data["final_answer"])
+    print(f"✅ LangGraph 실행 완료 (소요 시간: {output_data['execution_time']})", file=sys.stderr)  # 디버깅용
 if __name__ == "__main__":
     main()

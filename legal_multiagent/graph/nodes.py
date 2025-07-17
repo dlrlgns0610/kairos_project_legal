@@ -54,7 +54,7 @@ def summarize_precedents_node(state: LegalCaseState) -> LegalCaseState:
     summary, matches = search_similar_precedents_from_supabase(
         basic_facts=state["basic_facts"],
         legal_issue=state["legal_issue"],
-        related_laws=state["law_recommendation"],
+        related_laws=state["exact_laws"],
         legal_domains=state["case_categories"]
     )
 
@@ -72,23 +72,23 @@ def summarize_precedents_node(state: LegalCaseState) -> LegalCaseState:
 def recommend_law_node(state: LegalCaseState):
     print("▶️ 관련 법령 추천 중...")
     print("🧪 입력 상태 확인:", state)
-    laws_dict = recommend_relevant_laws(
+    laws_list = recommend_relevant_laws(
         legal_issue     = state["legal_issue"],
         facts           = state["basic_facts"],
         case_categories = state["case_categories"]
     )
-    print("📤 GPT 응답 원문:", laws_dict)
+    print("📤 GPT 응답 원문:", laws_list)
     import json
-    if isinstance(laws_dict, str):
+    if isinstance(laws_list, str):
         try:
-            laws_dict = json.loads(laws_dict)
+            laws_list = json.loads(laws_list)
         except Exception as e:
             print("❌ JSON 파싱 실패:", e, file=sys.stderr)
             raise
-    if isinstance(laws_dict, dict) and "laws" in laws_dict:
-        laws = laws_dict["laws"]
+    if isinstance(laws_list, dict) and "laws" in laws_list:
+        laws = laws_list["laws"]
     else:
-        laws = laws_dict  # already a list
+        laws = laws_list  # already a list
     return {"law_recommendation": laws}
 
 def generate_conclusion_and_sentencing_node(state: LegalCaseState) -> LegalCaseState:
@@ -96,7 +96,7 @@ def generate_conclusion_and_sentencing_node(state: LegalCaseState) -> LegalCaseS
     sentencing_factors, final_conclusion = generate_conclusion_and_sentencing(
         basic_facts=state["basic_facts"],
         legal_issue=state["legal_issue"],
-        law_recommendation=state["law_recommendation"],
+        exact_laws=state["exact_laws"],  # 정확한 조문 리스트 사용
         precedent_summary=state["precedent_summary"],
         case_categories=state["case_categories"],
     )
@@ -113,10 +113,10 @@ def generate_final_answer_node(state: LegalCaseState) -> LegalCaseState:
         if state.get("basic_facts") else "",
         f"⚖️ 법적 쟁점: {state['legal_issue']}" if state.get("legal_issue") else "",
         f"📖 적용 법령:\n" +
-        ("\n".join(state["law_recommendation"])
-        if isinstance(state["law_recommendation"], list)
-        else state["law_recommendation"])
-        if state.get("law_recommendation") else "",
+        ("\n".join(state["exact_laws"])
+        if isinstance(state["exact_laws"], list)
+        else state["exact_laws"])
+        if state.get("exact_laws") else "",
         f"📝 참고 판례(사건번호 / 사건명):\n" + "\n".join(state["precedent_cases"])
         if state.get("precedent_cases") else "",
         f"📚 유사 판례: {state['precedent_summary']}"  if state.get("precedent_summary") else "",
@@ -126,3 +126,20 @@ def generate_final_answer_node(state: LegalCaseState) -> LegalCaseState:
         parts.append(f"🔐 양형사유: {state['sentencing_factors']}")
     final_output = "\n\n\n".join([p for p in parts if p])
     return {"final_answer": final_output}                   # ✅
+
+def find_relevant_law_node(state: LegalCaseState) -> LegalCaseState:
+    print("▶️ 사건에 관련된 조문 찾기 중...")
+    relevant_laws = find_relevant_laws(
+        state["law_recommendation"]
+    )
+    return {"relevant_laws": relevant_laws}  # ✅
+
+def find_exact_law_node(state: LegalCaseState) -> LegalCaseState:
+    print("▶️ 사건에 정확히 관련된 조문 찾기 중...")
+    laws = find_exact_law(
+        legal_issue=state["legal_issue"],
+        facts=state["basic_facts"],
+        case_categories=state["case_categories"],
+        law_texts=state["relevant_laws"]
+    )
+    return {"exact_laws": laws}  # ✅

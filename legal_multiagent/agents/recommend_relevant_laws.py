@@ -45,7 +45,7 @@ def recommend_relevant_laws(
 **지침**
 - 반드시 제공된 법령명 중에서만 고를 것
 - 법령명이 비슷하다고 임의로 새로 생성하지 말 것
-- 결과는 아래와 같은 형식의 **배열**로 출력:
+- 결과는 아래와 같은 형식의 **배열**형식으로 출력:
 
 **예시 출력**
 [
@@ -53,6 +53,8 @@ def recommend_relevant_laws(
     "yy법",
     "zz법"
 ]
+
+
 """
 
     user_prompt = f"""
@@ -79,7 +81,7 @@ def recommend_relevant_laws(
             temperature=0.2
         )
         raw = response.choices[0].message.content
-
+        print("🧪 GPT 응답 원문:\n", raw) #디버깅
         result = json.loads(raw)
         if isinstance(result, list):
             return result
